@@ -102,7 +102,9 @@ async function mountFelpsMascots(container) {
       </form>
     </section>
     <div class="felps-agent-cursor" aria-hidden="true">
-      <svg viewBox="0 0 30 38"><path d="M3 2.5v27.2l7.2-6.6 5.2 11.6 5-2.3-5.1-11.1 9.5-.8L3 2.5Z"/></svg>
+      <svg viewBox="0 0 38 42">
+        <path d="M5.2 3.8 8 34.2c.1 1.3 1.8 1.8 2.6.8l6.1-7.7c.5-.7 1.4-.9 2.2-.7l10 3.2c1.4.5 2.4-1.2 1.3-2.2L7.5 3c-1-1-2.4-.4-2.3.8Z"/>
+      </svg>
       <span>FELPS</span><i></i>
     </div>`;
   document.documentElement.appendChild(root);
