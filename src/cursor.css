@@ -1,0 +1,77 @@
+.agent-cursor {
+  position: fixed;
+  left: -7px;
+  top: -4px;
+  width: 30px;
+  height: 38px;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0;
+  filter: drop-shadow(0 4px 6px #25221d45);
+  transition: opacity .16s ease;
+  will-change: transform;
+}
+
+.agent-cursor.visible { opacity: 1; }
+.agent-cursor.moving { transition: transform .72s cubic-bezier(.22,.85,.26,1), opacity .16s ease; }
+.agent-cursor svg { width: 26px; height: 34px; overflow: visible; }
+.agent-cursor svg path { fill: #fff; stroke: #262522; stroke-width: 2; stroke-linejoin: round; }
+
+.agent-cursor-label {
+  position: absolute;
+  left: 21px;
+  top: 25px;
+  background: #e66a2c;
+  color: #fff;
+  border: 2px solid #fff;
+  border-radius: 7px;
+  padding: 3px 6px;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  box-shadow: 0 3px 10px #29262133;
+}
+
+.agent-cursor-ring {
+  position: absolute;
+  left: -8px;
+  top: -8px;
+  width: 36px;
+  height: 36px;
+  border: 2px solid #e66a2c;
+  border-radius: 50%;
+  opacity: 0;
+  transform: scale(.35);
+}
+
+.agent-cursor.pressed svg { transform: scale(.86) translate(2px, 2px); }
+.agent-cursor.pressed .agent-cursor-ring { animation: agent-click .48s ease-out; }
+.agent-target { position: relative; z-index: 22 !important; box-shadow: 0 0 0 3px #e66a2c40 !important; transition: box-shadow .2s, transform .16s !important; }
+.agent-target-clicked { transform: scale(.97) !important; box-shadow: 0 0 0 5px #e66a2c55 !important; }
+
+.user-click-ripple {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border: 2px solid #e66a2c;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 99;
+  animation: user-ripple .55s ease-out forwards;
+}
+
+@keyframes agent-click {
+  0% { opacity: .85; transform: scale(.3); }
+  100% { opacity: 0; transform: scale(1.65); }
+}
+
+@keyframes user-ripple {
+  0% { opacity: .7; transform: scale(.35); }
+  100% { opacity: 0; transform: scale(2.7); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agent-cursor.moving { transition-duration: .01ms; }
+  .agent-cursor-ring, .user-click-ripple { animation-duration: .01ms !important; }
+}

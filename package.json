@@ -1,0 +1,11 @@
+{
+  "name": "alfred-firefox-copilot",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build-extension.mjs",
+    "dev": "node scripts/build-extension.mjs --watch",
+    "preview": "node scripts/build-extension.mjs"
+  }
+}

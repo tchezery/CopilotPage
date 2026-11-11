@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "Alfred Local Copilot",
+  "version": "0.2.0",
+  "description": "Um copiloto local que lê e interage com a aba usando Ollama.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "alfred-local-copilot@local",
+      "strict_min_version": "121.0"
+    }
+  },
+  "permissions": ["storage"],
+  "host_permissions": [
+    "http://127.0.0.1/*",
+    "http://localhost/*"
+  ],
+  "background": {
+    "scripts": ["background.js"],
+    "type": "module"
+  },
+  "action": {
+    "default_title": "Abrir Alfred",
+    "default_icon": "icons/icon.svg"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "css": ["content.css"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "48": "icons/icon.svg",
+    "96": "icons/icon.svg"
+  }
+}
