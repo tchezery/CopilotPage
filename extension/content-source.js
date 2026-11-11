@@ -70,13 +70,12 @@ async function mountFelpsMascots(container) {
   root.id = ROOT_ID;
   root.innerHTML = `
     <button class="felps-launcher" type="button" aria-label="Abrir Felps">
-      <span class="felps-mascot" data-felps-3d aria-label="Felps"><span class="felps-fallback">F</span><i></i></span>
-      <span class="felps-launcher-copy"><small>PRECISA DE AJUDA?</small><b>Conversar com Felps</b></span>
-      <svg viewBox="0 0 24 24"><path d="m12 3 1.4 4.1 4.1 1.4-4.1 1.4L12 14l-1.4-4.1-4.1-1.4 4.1-1.4L12 3Z"/></svg>
+      <span class="felps-mascot" data-felps-3d aria-hidden="true"><span class="felps-fallback"></span></span>
+      <span class="felps-launcher-tooltip">Conversar com Felps</span>
     </button>
     <section class="felps-panel" aria-label="Copiloto Felps" aria-hidden="true">
       <header>
-        <span class="felps-mascot felps-mascot-small" data-felps-3d aria-label="Felps"><span class="felps-fallback">F</span><i></i></span>
+        <span class="felps-mascot felps-mascot-small" data-felps-3d aria-label="Felps"><span class="felps-fallback"></span><i></i></span>
         <div><small><i></i> COPILOTO LOCAL</small><h2>Felps</h2></div>
         <button class="felps-reset" type="button" title="Limpar conversa" aria-label="Limpar conversa">↻</button>
         <button class="felps-close" type="button" title="Fechar" aria-label="Fechar">×</button>
