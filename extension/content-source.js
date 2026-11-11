@@ -57,6 +57,7 @@ async function mountFelpsMascots(container) {
       host.dataset.ready = 'true';
     }
   } catch (error) {
+    hosts.forEach(host => { host.dataset.error = 'true'; });
     console.warn('Felps: não foi possível carregar o mascote 3D.', error);
   }
 }
@@ -92,6 +93,7 @@ async function mountFelpsMascots(container) {
       <span>FELPS</span><i></i>
     </div>`;
   document.documentElement.appendChild(root);
+  console.info('Felps Local Copilot: content script carregado.', browser.runtime.getURL('manifest.json'));
   mountFelpsMascots(root);
 
   const launcher = root.querySelector('.felps-launcher');
