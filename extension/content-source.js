@@ -6,7 +6,20 @@ const felpsModelUrl = browser.runtime.getURL('assets/Felps.glb');
 let felpsSourcePromise;
 
 function loadFelpsSource() {
-  felpsSourcePromise ||= new GLTFLoader().loadAsync(felpsModelUrl);
+  felpsSourcePromise ||= new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    request.open('GET', felpsModelUrl, true);
+    request.responseType = 'arraybuffer';
+    request.onload = () => {
+      if (request.status && request.status !== 200) {
+        reject(new Error(`Falha ao carregar Felps.glb: HTTP ${request.status}`));
+        return;
+      }
+      new GLTFLoader().parse(request.response, '', resolve, reject);
+    };
+    request.onerror = () => reject(new Error('Falha de rede ao carregar Felps.glb.'));
+    request.send();
+  });
   return felpsSourcePromise;
 }
 
