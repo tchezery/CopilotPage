@@ -19,7 +19,7 @@ document.getElementById('test').addEventListener('click', async () => {
   status.textContent = 'Testando…';
   await browser.storage.local.set({ endpoint: endpoint.value.trim().replace(/\/+$/, ''), model: model.value.trim() });
   try {
-    const result = await browser.runtime.sendMessage({ type: 'ALFRED_STATUS' });
+    const result = await browser.runtime.sendMessage({ type: 'FELPS_STATUS' });
     status.textContent = result.available ? `Conectado a ${result.model}.` : `Ollama conectado, mas o modelo ${result.model} não está instalado.`;
   } catch (error) {
     status.textContent = `Falha: ${error.message}`;

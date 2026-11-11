@@ -2,6 +2,6 @@
   <defs><linearGradient id="g" x1="18" y1="12" x2="78" y2="84" gradientUnits="userSpaceOnUse"><stop stop-color="#ff9b61"/><stop offset="1" stop-color="#e85d2a"/></linearGradient></defs>
   <rect width="96" height="96" rx="24" fill="#171512"/>
   <circle cx="48" cy="48" r="31" fill="url(#g)"/>
-  <path d="M31 66 44 29h9l13 37H56l-2.5-8H42.7L40 66H31Zm14-17h6l-3-10-3 10Z" fill="#fff"/>
+  <path d="M33 68V28h31v9H44v8h17v9H44v14H33Z" fill="#fff"/>
   <path d="m72 18 1.8 5.2L79 25l-5.2 1.8L72 32l-1.8-5.2L65 25l5.2-1.8L72 18Z" fill="#fff4e9"/>
 </svg>

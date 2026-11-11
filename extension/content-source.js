@@ -1,47 +1,111 @@
-(() => {
-  if (window.top !== window || document.getElementById('alfred-extension-root')) return;
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { clone as cloneSkeleton } from 'three/addons/utils/SkeletonUtils.js';
 
-  const ROOT_ID = 'alfred-extension-root';
-  const HISTORY_KEY = `alfred-history:${location.origin}`;
+const felpsModelUrl = browser.runtime.getURL('assets/Felps.glb');
+let felpsSourcePromise;
+
+function loadFelpsSource() {
+  felpsSourcePromise ||= new GLTFLoader().loadAsync(felpsModelUrl);
+  return felpsSourcePromise;
+}
+
+async function mountFelpsMascots(container) {
+  const hosts = [...container.querySelectorAll('[data-felps-3d]')];
+  if (!hosts.length) return;
+  try {
+    const gltf = await loadFelpsSource();
+    for (const host of hosts) {
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(25, 1, 0.01, 100);
+      camera.position.set(0, 0.04, 4.8);
+      const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'high-performance' });
+      renderer.setClearColor(0x000000, 0);
+      renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.05;
+      renderer.domElement.className = 'felps-mascot-canvas';
+      renderer.domElement.setAttribute('aria-hidden', 'true');
+      host.appendChild(renderer.domElement);
+      scene.add(new THREE.HemisphereLight(0xffffff, 0x51483f, 2.4));
+      const key = new THREE.DirectionalLight(0xffffff, 3.8); key.position.set(-2.7, 3.5, 4.5); scene.add(key);
+      const rim = new THREE.DirectionalLight(0xffffff, 1.6); rim.position.set(3.4, 1.2, -2.4); scene.add(rim);
+      const model = cloneSkeleton(gltf.scene);
+      model.traverse(object => { if (object.isMesh) object.frustumCulled = false; });
+      const bounds = new THREE.Box3().setFromObject(model);
+      const size = bounds.getSize(new THREE.Vector3());
+      const center = bounds.getCenter(new THREE.Vector3());
+      model.position.sub(center);
+      model.scale.setScalar(1.72 / Math.max(size.x, size.y, size.z));
+      const group = new THREE.Group(); group.add(model); group.position.y = 0.04; scene.add(group);
+      const resize = () => {
+        const width = Math.max(1, host.clientWidth); const height = Math.max(1, host.clientHeight);
+        renderer.setSize(width, height, false); camera.aspect = width / height; camera.updateProjectionMatrix();
+      };
+      new ResizeObserver(resize).observe(host); resize();
+      const phase = Math.random() * Math.PI * 2;
+      const render = time => {
+        if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          group.position.y = 0.04 + Math.sin(time * 0.00125 + phase) * 0.035;
+          group.rotation.y = Math.sin(time * 0.00048 + phase) * 0.06;
+          group.rotation.z = Math.sin(time * 0.00072 + phase) * 0.018;
+        }
+        renderer.render(scene, camera); requestAnimationFrame(render);
+      };
+      requestAnimationFrame(render);
+      host.dataset.ready = 'true';
+    }
+  } catch (error) {
+    console.warn('Felps: não foi possível carregar o mascote 3D.', error);
+  }
+}
+
+(() => {
+  if (window.top !== window || document.getElementById('felps-extension-root')) return;
+
+  const ROOT_ID = 'felps-extension-root';
+  const HISTORY_KEY = `felps-history:${location.origin}`;
   const root = document.createElement('div');
   root.id = ROOT_ID;
   root.innerHTML = `
-    <button class="alfred-launcher" type="button" aria-label="Abrir Alfred">
-      <span class="alfred-avatar">A<i></i></span>
-      <span class="alfred-launcher-copy"><small>PRECISA DE AJUDA?</small><b>Conversar com Alfred</b></span>
+    <button class="felps-launcher" type="button" aria-label="Abrir Felps">
+      <span class="felps-mascot" data-felps-3d aria-label="Felps"><span class="felps-fallback">F</span><i></i></span>
+      <span class="felps-launcher-copy"><small>PRECISA DE AJUDA?</small><b>Conversar com Felps</b></span>
       <svg viewBox="0 0 24 24"><path d="m12 3 1.4 4.1 4.1 1.4-4.1 1.4L12 14l-1.4-4.1-4.1-1.4 4.1-1.4L12 3Z"/></svg>
     </button>
-    <section class="alfred-panel" aria-label="Copiloto Alfred" aria-hidden="true">
+    <section class="felps-panel" aria-label="Copiloto Felps" aria-hidden="true">
       <header>
-        <span class="alfred-avatar alfred-avatar-small">A<i></i></span>
-        <div><small><i></i> COPILOTO LOCAL</small><h2>Alfred</h2></div>
-        <button class="alfred-reset" type="button" title="Limpar conversa" aria-label="Limpar conversa">↻</button>
-        <button class="alfred-close" type="button" title="Fechar" aria-label="Fechar">×</button>
+        <span class="felps-mascot felps-mascot-small" data-felps-3d aria-label="Felps"><span class="felps-fallback">F</span><i></i></span>
+        <div><small><i></i> COPILOTO LOCAL</small><h2>Felps</h2></div>
+        <button class="felps-reset" type="button" title="Limpar conversa" aria-label="Limpar conversa">↻</button>
+        <button class="felps-close" type="button" title="Fechar" aria-label="Fechar">×</button>
       </header>
-      <div class="alfred-context"><span></span><b>Conectando ao Ollama…</b></div>
-      <div class="alfred-messages" aria-live="polite"></div>
-      <form class="alfred-composer">
-        <textarea rows="1" placeholder="Peça algo sobre esta página…" aria-label="Mensagem para Alfred"></textarea>
+      <div class="felps-context"><span></span><b>Conectando ao Ollama…</b></div>
+      <div class="felps-messages" aria-live="polite"></div>
+      <form class="felps-composer">
+        <textarea rows="1" placeholder="Peça algo sobre esta página…" aria-label="Mensagem para Felps"></textarea>
         <div><small>As ações aparecem na tela</small><button type="submit" aria-label="Enviar">➤</button></div>
       </form>
     </section>
-    <div class="alfred-agent-cursor" aria-hidden="true">
+    <div class="felps-agent-cursor" aria-hidden="true">
       <svg viewBox="0 0 30 38"><path d="M3 2.5v27.2l7.2-6.6 5.2 11.6 5-2.3-5.1-11.1 9.5-.8L3 2.5Z"/></svg>
-      <span>ALFRED</span><i></i>
+      <span>FELPS</span><i></i>
     </div>`;
   document.documentElement.appendChild(root);
+  mountFelpsMascots(root);
 
-  const launcher = root.querySelector('.alfred-launcher');
-  const panel = root.querySelector('.alfred-panel');
-  const closeButton = root.querySelector('.alfred-close');
-  const resetButton = root.querySelector('.alfred-reset');
-  const messagesNode = root.querySelector('.alfred-messages');
-  const composer = root.querySelector('.alfred-composer');
+  const launcher = root.querySelector('.felps-launcher');
+  const panel = root.querySelector('.felps-panel');
+  const closeButton = root.querySelector('.felps-close');
+  const resetButton = root.querySelector('.felps-reset');
+  const messagesNode = root.querySelector('.felps-messages');
+  const composer = root.querySelector('.felps-composer');
   const input = composer.querySelector('textarea');
   const send = composer.querySelector('button');
-  const contextLabel = root.querySelector('.alfred-context b');
-  const contextDot = root.querySelector('.alfred-context span');
-  const cursor = root.querySelector('.alfred-agent-cursor');
+  const contextLabel = root.querySelector('.felps-context b');
+  const contextDot = root.querySelector('.felps-context span');
+  const cursor = root.querySelector('.felps-agent-cursor');
   let history = [];
   let busy = false;
   let elementsByRef = new Map();
@@ -100,7 +164,7 @@
   }
 
   function systemMessage(context) {
-    return { role: 'system', content: `Você é Alfred, um copiloto local dentro do Firefox. Responda no idioma do usuário de forma objetiva e útil.
+    return { role: 'system', content: `Você é Felps, um copiloto local dentro do Firefox. Responda no idioma do usuário de forma objetiva e útil.
 Você recebeu um retrato da aba atual. Use somente informações desse retrato; não invente conteúdo nem diga que realizou uma ação antes do resultado da tool.
 Você pode explicar a página, apontar controles e executar ações simples quando o usuário pedir. Nunca clique ou preencha algo por iniciativa própria.
 Não execute exclusão, compra, pagamento, consentimento, publicação, envio final de formulário, alteração de senha ou ação irreversível. Nesses casos, explique e apenas aponte o controle para o usuário decidir.
@@ -118,16 +182,16 @@ ${JSON.stringify(context)}` };
     target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
     await wait(280);
     const rect = target.getBoundingClientRect();
-    cursor.className = 'alfred-agent-cursor visible';
+    cursor.className = 'felps-agent-cursor visible';
     cursor.style.transform = `translate3d(${innerWidth - 64}px,${innerHeight - 80}px,0)`;
-    target.classList.add('alfred-extension-target');
+    target.classList.add('felps-extension-target');
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     cursor.classList.add('moving');
     cursor.style.transform = `translate3d(${rect.left + rect.width / 2}px,${rect.top + rect.height / 2}px,0)`;
     await wait(720);
     cursor.classList.remove('moving');
     if (click) { cursor.classList.add('clicking'); await wait(300); cursor.classList.remove('clicking'); }
-    target.classList.remove('alfred-extension-target');
+    target.classList.remove('felps-extension-target');
     await wait(click ? 160 : 420);
     cursor.classList.remove('visible');
   }
@@ -154,7 +218,7 @@ ${JSON.stringify(context)}` };
     }
     if (name === 'fill_field') {
       const type = String(target.getAttribute('type') || '').toLowerCase();
-      if (['password', 'file', 'hidden'].includes(type)) throw new Error('Esse tipo de campo não pode ser preenchido pelo Alfred.');
+      if (['password', 'file', 'hidden'].includes(type)) throw new Error('Esse tipo de campo não pode ser preenchido pelo Felps.');
       await animateCursor(target, true); target.focus();
       const text = String(args.text ?? '').slice(0, 2000);
       if (target.isContentEditable) target.textContent = text;
@@ -171,24 +235,24 @@ ${JSON.stringify(context)}` };
   }
 
   function appendMessage(role, text) {
-    const node = document.createElement('div'); node.className = `alfred-message ${role}`;
+    const node = document.createElement('div'); node.className = `felps-message ${role}`;
     const content = document.createElement('div');
     clean(text).split(/\n{2,}/).forEach(paragraph => { const p = document.createElement('p'); p.textContent = paragraph; content.appendChild(p); });
     node.appendChild(content); messagesNode.appendChild(node); messagesNode.scrollTop = messagesNode.scrollHeight; return node;
   }
 
   function appendTool(name, done = false) {
-    root.querySelector('.alfred-tool.running')?.remove();
-    const node = document.createElement('div'); node.className = `alfred-tool ${done ? 'done' : 'running'}`;
+    root.querySelector('.felps-tool.running')?.remove();
+    const node = document.createElement('div'); node.className = `felps-tool ${done ? 'done' : 'running'}`;
     const icon = document.createElement('i'); icon.textContent = done ? '✓' : '…';
     const copy = document.createElement('span'); const title = document.createElement('b'); title.textContent = name;
-    const status = document.createElement('small'); status.textContent = done ? 'Concluído' : 'Alfred está usando esta ferramenta…';
+    const status = document.createElement('small'); status.textContent = done ? 'Concluído' : 'Felps está usando esta ferramenta…';
     copy.append(title, status); node.append(icon, copy); messagesNode.appendChild(node); messagesNode.scrollTop = messagesNode.scrollHeight;
   }
 
   function showThinking(show) {
-    root.querySelector('.alfred-thinking')?.remove(); if (!show) return;
-    const node = document.createElement('div'); node.className = 'alfred-thinking'; node.innerHTML = '<i></i><i></i><i></i>';
+    root.querySelector('.felps-thinking')?.remove(); if (!show) return;
+    const node = document.createElement('div'); node.className = 'felps-thinking'; node.innerHTML = '<i></i><i></i><i></i>';
     messagesNode.appendChild(node); messagesNode.scrollTop = messagesNode.scrollHeight;
   }
 
@@ -196,8 +260,8 @@ ${JSON.stringify(context)}` };
   function renderHistory() {
     messagesNode.replaceChildren();
     if (!history.length) {
-      appendMessage('assistant', 'Olá! Sou o Alfred. Posso ler esta página, explicar o que está visível e usar controles por você.');
-      const suggestions = document.createElement('div'); suggestions.className = 'alfred-suggestions';
+      appendMessage('assistant', 'Olá! Sou o Felps. Posso ler esta página, explicar o que está visível e usar controles por você.');
+      const suggestions = document.createElement('div'); suggestions.className = 'felps-suggestions';
       ['O que tem nesta página?', 'Quais ações posso fazer?', 'Mostre o principal botão desta tela'].forEach(text => { const button = document.createElement('button'); button.type = 'button'; button.textContent = text; button.addEventListener('click', () => run(text)); suggestions.appendChild(button); });
       messagesNode.appendChild(suggestions);
     } else history.forEach(item => appendMessage(item.role, item.content));
@@ -211,7 +275,7 @@ ${JSON.stringify(context)}` };
     try {
       let finalText = '';
       for (let step = 0; step < 4; step += 1) {
-        const result = await browser.runtime.sendMessage({ type: 'ALFRED_CHAT', messages, tools });
+        const result = await browser.runtime.sendMessage({ type: 'FELPS_CHAT', messages, tools });
         const message = result?.message || {}; const calls = Array.isArray(message.tool_calls) ? message.tool_calls : [];
         contextLabel.textContent = `${result.model} · página ativa`; contextDot.classList.add('online');
         if (!calls.length) { finalText = clean(message.content) || 'Não consegui formular uma resposta.'; break; }
@@ -240,7 +304,7 @@ ${JSON.stringify(context)}` };
   composer.addEventListener('submit', event => { event.preventDefault(); run(input.value); });
   input.addEventListener('keydown', event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); run(input.value); } });
   document.addEventListener('keydown', event => { if (event.key === 'Escape' && panel.classList.contains('open')) closePanel(); });
-  browser.runtime.onMessage.addListener(message => { if (message?.type === 'ALFRED_TOGGLE') togglePanel(); });
+  browser.runtime.onMessage.addListener(message => { if (message?.type === 'FELPS_TOGGLE') togglePanel(); });
   browser.storage.local.get(HISTORY_KEY).then(stored => { history = Array.isArray(stored[HISTORY_KEY]) ? stored[HISTORY_KEY] : []; renderHistory(); });
-  browser.runtime.sendMessage({ type: 'ALFRED_STATUS' }).then(result => { contextLabel.textContent = result.available ? `${result.model} · pronto` : `${result.model} · não instalado`; contextDot.classList.toggle('online', result.available); }).catch(() => { contextLabel.textContent = 'Ollama indisponível'; });
+  browser.runtime.sendMessage({ type: 'FELPS_STATUS' }).then(result => { contextLabel.textContent = result.available ? `${result.model} · pronto` : `${result.model} · não instalado`; contextDot.classList.toggle('online', result.available); }).catch(() => { contextLabel.textContent = 'Ollama indisponível'; });
 })();

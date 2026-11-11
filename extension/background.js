@@ -19,13 +19,13 @@ async function ollama(path, init) {
 }
 
 browser.runtime.onMessage.addListener(async message => {
-  if (message?.type === 'ALFRED_STATUS') {
+  if (message?.type === 'FELPS_STATUS') {
     const { payload, config } = await ollama('/api/tags');
     const available = Array.isArray(payload.models) && payload.models.some(item => item.name === config.model || item.model === config.model);
     return { ok: true, available, ...config };
   }
 
-  if (message?.type === 'ALFRED_CHAT') {
+  if (message?.type === 'FELPS_CHAT') {
     const config = await settings();
     const { payload } = await ollama('/api/chat', {
       method: 'POST',
@@ -46,7 +46,7 @@ browser.runtime.onMessage.addListener(async message => {
 browser.action.onClicked.addListener(async tab => {
   if (!tab.id) return;
   try {
-    await browser.tabs.sendMessage(tab.id, { type: 'ALFRED_TOGGLE' });
+    await browser.tabs.sendMessage(tab.id, { type: 'FELPS_TOGGLE' });
   } catch {
     // Firefox internal pages intentionally do not allow content scripts.
   }

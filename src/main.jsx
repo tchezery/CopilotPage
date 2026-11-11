@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import alfredUrl from '../Alfred.glb?url';
+import felpsUrl from '../extension/assets/Felps.glb?url';
 import { answerFromPage, readPageContext } from './pageContext.js';
 import { askLocalAgent, checkLocalAgent, localModel, toolArguments } from './localAgent.js';
 import './styles.css';
@@ -29,7 +29,7 @@ const Icon = ({ name, size = 18 }) => {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
 };
 
-function Alfred3D({ compact = false }) {
+function Felps3D({ compact = false }) {
   const mount = useRef(null);
   useEffect(() => {
     if (!mount.current) return;
@@ -46,7 +46,7 @@ function Alfred3D({ compact = false }) {
     const key = new THREE.DirectionalLight(0xffffff, 3.5);
     key.position.set(2, 3, 4); scene.add(key);
     let model;
-    new GLTFLoader().load(alfredUrl, (gltf) => {
+    new GLTFLoader().load(felpsUrl, (gltf) => {
       model = gltf.scene;
       model.scale.setScalar(compact ? 1.95 : 1.55);
       model.position.y = compact ? -.05 : -.14;
@@ -65,7 +65,7 @@ function Alfred3D({ compact = false }) {
     window.addEventListener('resize', resize);
     return () => { cancelAnimationFrame(frame); window.removeEventListener('resize', resize); renderer.dispose(); host.replaceChildren(); };
   }, [compact]);
-  return <div className="alfred-3d" ref={mount} aria-label="Alfred assistant character" />;
+  return <div className="felps-3d" ref={mount} aria-label="Felps assistant character" />;
 }
 
 function AgentCursor({ state }) {
@@ -75,7 +75,7 @@ function AgentCursor({ state }) {
     aria-hidden="true"
   >
     <svg viewBox="0 0 30 38" role="presentation"><path d="M3 2.5v27.2l7.2-6.6 5.2 11.6 5-2.3-5.1-11.1 9.5-.8L3 2.5Z"/></svg>
-    <span className="agent-cursor-label">ALFRED</span>
+    <span className="agent-cursor-label">FELPS</span>
     <i className="agent-cursor-ring" />
   </div>;
 }
@@ -98,7 +98,7 @@ function Copilot({ currentPage, onNavigate, onSearch, onGuide }) {
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
   const [modelStatus, setModelStatus] = useState('checking');
-  const [messages, setMessages] = useState([{ role: 'assistant', text: "Hi, I’m Alfred. I know this workspace and can use tools to help you get things done." }]);
+  const [messages, setMessages] = useState([{ role: 'assistant', text: "Hi, I’m Felps. I know this workspace and can use tools to help you get things done." }]);
   const end = useRef(null);
   useEffect(() => end.current?.scrollIntoView({ behavior: 'smooth' }), [messages, busy]);
   useEffect(() => { checkLocalAgent().then(ready => setModelStatus(ready ? 'online' : 'offline')).catch(() => setModelStatus('offline')); }, []);
@@ -147,16 +147,16 @@ function Copilot({ currentPage, onNavigate, onSearch, onGuide }) {
   };
 
   return <>
-    {open && <section className="copilot-panel" aria-label="Alfred copilot">
+    {open && <section className="copilot-panel" aria-label="Felps copilot">
       <header className="copilot-head">
-        <div className="head-avatar"><Alfred3D compact /></div>
-        <div><div className="eyebrow"><span className="online"/> YOUR COPILOT</div><h2>Ask Alfred</h2></div>
+        <div className="head-avatar"><Felps3D compact /></div>
+        <div><div className="eyebrow"><span className="online"/> YOUR COPILOT</div><h2>Ask Felps</h2></div>
         <button className="icon-button close" onClick={() => setOpen(false)} aria-label="Close copilot"><Icon name="close" /></button>
       </header>
       <div className="copilot-body">
         <div className={`context-pill model-${modelStatus}`}><Icon name="spark" size={14}/> {modelStatus === 'online' ? `${localModel} · Live page` : modelStatus === 'offline' ? 'Local model offline · Page fallback' : 'Connecting to local model…'}</div>
         {messages.map((message, i) => message.role === 'tool' ?
-          <div className="tool-call" key={i}><div className="tool-icon">{message.status === 'Done' ? <Icon name="check" size={15}/> : <span className="spinner"/>}</div><div><b>{message.tool.label}</b><span>{message.status === 'Done' ? message.tool.detail : 'Alfred is using this tool…'}</span></div><em>{message.status}</em></div>
+          <div className="tool-call" key={i}><div className="tool-icon">{message.status === 'Done' ? <Icon name="check" size={15}/> : <span className="spinner"/>}</div><div><b>{message.tool.label}</b><span>{message.status === 'Done' ? message.tool.detail : 'Felps is using this tool…'}</span></div><em>{message.status}</em></div>
           : <div className={`message ${message.role}`} key={i}>{message.text}</div>)}
         {busy && messages.at(-1)?.role !== 'tool' && <div className="thinking"><i/><i/><i/></div>}
         {messages.length === 1 && <div className="suggestions">
@@ -168,12 +168,12 @@ function Copilot({ currentPage, onNavigate, onSearch, onGuide }) {
       </div>
       <form className="composer" onSubmit={(e) => { e.preventDefault(); run(input); }}>
         <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); run(input); }}} placeholder="Ask about this page or take an action…" rows="1" />
-        <div><span>Alfred can make mistakes</span><button type="submit" aria-label="Send message" disabled={!input.trim() || busy}><Icon name="send" size={17}/></button></div>
+        <div><span>Felps can make mistakes</span><button type="submit" aria-label="Send message" disabled={!input.trim() || busy}><Icon name="send" size={17}/></button></div>
       </form>
     </section>}
-    {!open && <button className="copilot-launcher" onClick={() => setOpen(true)} aria-label="Open Alfred copilot">
-      <span className="launcher-model"><Alfred3D compact /></span>
-      <span><small>NEED A HAND?</small><b>Ask Alfred</b></span><Icon name="spark" size={18}/>
+    {!open && <button className="copilot-launcher" onClick={() => setOpen(true)} aria-label="Open Felps copilot">
+      <span className="launcher-model"><Felps3D compact /></span>
+      <span><small>NEED A HAND?</small><b>Ask Felps</b></span><Icon name="spark" size={18}/>
     </button>}
   </>;
 }
@@ -266,6 +266,6 @@ function Dashboard({ search }) {
 
 function Profile({ onBack }) { return <div className="content profile-page"><button className="back" onClick={onBack}>← Back to overview</button><div className="profile-hero"><div className="big-avatar">TC</div><div><p>PERSONAL PROFILE</p><h1>Tom Chezery</h1><span>Administrator · São Paulo, Brazil</span></div><button>Edit profile</button></div><section className="profile-form"><div><label>Full name</label><input defaultValue="Tom Chezery"/></div><div><label>Work email</label><input defaultValue="tom@northstar.studio"/></div><div><label>Role</label><input defaultValue="Administrator"/></div><div><label>Timezone</label><input defaultValue="America/Sao_Paulo"/></div><div className="wide"><label>Bio</label><textarea defaultValue="Building thoughtful software and better ways of working."/></div></section></div>; }
 
-function Tour({ onClose }) { return <div className="tour-layer"><div className="spotlight"/><div className="tour-card"><span>STEP 1 OF 3</span><h3>Create a new invoice</h3><p>Start here. Alfred can also fill the invoice using a client and project you describe.</p><div><button onClick={onClose}>End tour</button><button onClick={onClose}>Got it <Icon name="arrow" size={14}/></button></div></div></div>; }
+function Tour({ onClose }) { return <div className="tour-layer"><div className="spotlight"/><div className="tour-card"><span>STEP 1 OF 3</span><h3>Create a new invoice</h3><p>Start here. Felps can also fill the invoice using a client and project you describe.</p><div><button onClick={onClose}>End tour</button><button onClick={onClose}>Got it <Icon name="arrow" size={14}/></button></div></div></div>; }
 
 createRoot(document.getElementById('root')).render(<App />);
