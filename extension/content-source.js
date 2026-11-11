@@ -290,6 +290,7 @@ ${JSON.stringify(context)}` };
       let finalText = '';
       for (let step = 0; step < 4; step += 1) {
         const result = await browser.runtime.sendMessage({ type: 'FELPS_CHAT', messages, tools });
+        if (!result?.ok) throw new Error(result?.error || 'O processo de fundo da extensão não respondeu.');
         const message = result?.message || {}; const calls = Array.isArray(message.tool_calls) ? message.tool_calls : [];
         contextLabel.textContent = `${result.model} · página ativa`; contextDot.classList.add('online');
         if (!calls.length) { finalText = clean(message.content) || 'Não consegui formular uma resposta.'; break; }
@@ -320,5 +321,13 @@ ${JSON.stringify(context)}` };
   document.addEventListener('keydown', event => { if (event.key === 'Escape' && panel.classList.contains('open')) closePanel(); });
   browser.runtime.onMessage.addListener(message => { if (message?.type === 'FELPS_TOGGLE') togglePanel(); });
   browser.storage.local.get(HISTORY_KEY).then(stored => { history = Array.isArray(stored[HISTORY_KEY]) ? stored[HISTORY_KEY] : []; renderHistory(); });
-  browser.runtime.sendMessage({ type: 'FELPS_STATUS' }).then(result => { contextLabel.textContent = result.available ? `${result.model} · pronto` : `${result.model} · não instalado`; contextDot.classList.toggle('online', result.available); }).catch(() => { contextLabel.textContent = 'Ollama indisponível'; });
+  browser.runtime.sendMessage({ type: 'FELPS_STATUS' }).then(result => {
+    if (!result?.ok) throw new Error(result?.error || 'Falha ao consultar o Ollama.');
+    contextLabel.textContent = result.available ? `${result.model} · pronto` : `${result.model} · não instalado`;
+    contextDot.classList.toggle('online', result.available);
+  }).catch(error => {
+    contextDot.classList.remove('online');
+    contextLabel.textContent = 'Ollama indisponível';
+    console.warn('Felps: falha ao consultar o Ollama.', error?.message || error);
+  });
 })();

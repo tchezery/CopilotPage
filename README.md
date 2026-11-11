@@ -22,7 +22,7 @@ ollama pull qwen3.5:4b
 ollama serve
 ```
 
-O padrão é `http://127.0.0.1:11434` com `qwen3.5:4b`. Os dois valores podem ser alterados em **Extensões → Felps Local Copilot → Preferências**.
+O Ollama continua rodando em `http://127.0.0.1:11434`. Para o Firefox não bloquear a origem da extensão, `npm run dev` abre uma ponte local restrita em `http://127.0.0.1:11435`; ela aceita apenas `/api/tags` e `/api/chat`. O modelo padrão é `qwen3.5:4b`, configurável em **Extensões → Felps Local Copilot → Preferências**.
 
 ## Gerar e instalar temporariamente
 
